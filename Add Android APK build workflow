@@ -1,0 +1,51 @@
+name: 📱 Build Noor Quran APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 دریافت کد
+      uses: actions/checkout@v4
+      
+    - name: ⚙️ نصب Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: 📦 نصب وابستگی‌ها
+      run: |
+        npm install
+        npm install @capacitor/core @capacitor/cli @capacitor/android
+        
+    - name: 🏗️ ساخت پروژه وب
+      run: npm run build
+        
+    - name: ☕ نصب Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+        
+    - name: 🤖 افزودن پلتفرم اندروید
+      run: |
+        npx cap add android
+        npx cap sync android
+        
+    - name: 🔨 ساخت APK
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug
+        
+    - name: 📤 آپلود APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: noor-quran-app
+        path: android/app/build/outputs/apk/debug/app-debug.apk
